@@ -2,6 +2,7 @@
 #include <thread>
 #include <algorithm>
 #include <vector>
+#include <type_traits>
 
 #if __cplusplus <= 201103L // C++11
 
@@ -43,7 +44,13 @@ private:
 #elif __cplusplus > 201402L && __cplusplus <= 201703L // C++17
 
 #else // C++20
+template <typename T>
+concept Numeric = std::is_arithmetic_v<T>;
 
+template <typename T>
+concept PlusOperator = requires(T type) {
+    { type + type };
+};
 #endif
 
 void thread_function(int a, int b) { std::cout << a + b << std::endl; }
@@ -51,7 +58,6 @@ void thread_function(int a, int b) { std::cout << a + b << std::endl; }
 int main() {
 
 #if __cplusplus <= 201103L // C++11
-
     #define EXAMPLE_4
 
     #ifdef EXAMPLE_0
@@ -106,13 +112,69 @@ int main() {
     decrease_ref_a(); // Prints: 2
     std::cout << a << std::endl; // Prints: 1
     #endif
-
 #elif __cplusplus > 201103L && __cplusplus <= 201402L // C++14
+    #define EXAMPLE_2
 
+    #ifdef EXAMPLE_1
+    auto lambda = [](auto a, auto b) {
+        return a + b;
+    };
+
+    lambda(1, 2.4); // int, double
+    lambda(5.f, 3); // float, int
+    #endif
+    #ifdef EXAMPLE_2
+    int a = 4, k = 7;
+    auto lambda = [&b = a, k = a]() mutable {
+        b++;
+        std::cout << k << std::endl; // Prints: 4
+    };
+    lambda();
+    std::cout << a << std::endl; // Prints: 5
+    #endif
 #elif __cplusplus > 201402L && __cplusplus <= 201703L // C++17
-
+    struct my_struct {
+        my_struct() {}
+        my_struct(const my_struct &) { std::cout << "Copy" << std::endl; } // Called during this->func();
+        void func() {
+            [*this]() { // call copy constructor
+            };
+            [this] { // doesn't call copy constructor
+            };
+        }
+    };
+    my_struct ms;
+    ms.func();
 #else // C++20
+    #define EXAMPLE_3
 
+    #ifdef EXAMPLE_1
+    auto sum = [] <typename T, Numeric U> (T num1, U num2) requires ( std::is_arithmetic_v<T> ) {
+        return num1 + num2;
+    };
+    std::cout << sum(3.2, 5) << std::endl;
+    #endif
+    #ifdef EXAMPLE_2
+    using namespace std::string_literals;
+
+    auto plus = [] <typename T> (T arg1, T arg2) {
+        return arg1 + arg2;
+    };
+    std::cout << plus("Hello "s, "World"s) << std::endl;
+    #endif
+    #ifdef EXAMPLE_3
+    using namespace std::string_literals;
+
+    auto plus = [] <PlusOperator T, PlusOperator ...Args> (T first, Args ...args) requires ( std::is_same_v<T, Args> && ... ) {
+        return (first + ... + args);
+    };
+    std::cout << plus(1) << std::endl; // Prints: 1
+    std::cout << plus(1, 4, 5) << std::endl; // Prints: 10
+    std::cout << plus(2.3, 4.5, 5.6) << std::endl; // Prints: 12.4
+    std::cout << plus("Template"s, " "s, "Lambda"s, " "s, "Expression"s) << std::endl; // Prints: Template Lambda Expression
+    #endif
+    #ifdef EXAMPLE_4
+    #endif
 #endif
 
     return EXIT_SUCCESS;
