@@ -4,6 +4,11 @@
 #include <vector>
 #include <type_traits>
 
+// Example #
+#define EXAMPLE_5
+
+
+
 #if __cplusplus <= 201103L // C++11
 
 class my_class {
@@ -41,6 +46,39 @@ private:
 
 #elif __cplusplus > 201103L && __cplusplus <= 201402L // C++14
 
+#ifdef EXAMPLE_4
+class __lambda_4_16 {
+public:
+    template<class type_parameter_0_0, class type_parameter_0_1>
+    inline auto operator()(type_parameter_0_0 a, type_parameter_0_1 b) const {
+        return a + b;
+    }
+
+    // template<> // C++ doesn't allow explicit specialization in non-namespace scope. This workaround suggested by @bop on StackOverflow: https://stackoverflow.com/a/13018943/8038186
+    inline double operator()(int a, double b) const {
+        return static_cast<double>(a) + b;
+    }
+
+
+    // template<> // C++ doesn't allow explicit specialization in non-namespace scope. This workaround suggested by @bop on StackOverflow: https://stackoverflow.com/a/13018943/8038186
+    inline float operator()(float a, int b) const {
+        return a + static_cast<float>(b);
+    }
+
+private:
+    template<class type_parameter_0_0, class type_parameter_0_1>
+    static inline auto __invoke(type_parameter_0_0 a, type_parameter_0_1 b) {
+        return a + b;
+    }
+
+public:
+    inline constexpr __lambda_4_16(__lambda_4_16 &&) noexcept = default;
+};
+#endif
+
+#ifdef EXAMPLE_5
+#endif
+
 #elif __cplusplus > 201402L && __cplusplus <= 201703L // C++17
 
 #else // C++20
@@ -58,8 +96,6 @@ void thread_function(int a, int b) { std::cout << a + b << std::endl; }
 int main() {
 
 #if __cplusplus <= 201103L // C++11
-    #define EXAMPLE_4
-
     #ifdef EXAMPLE_0
     [ /* capture */ ] ( /* params */ ) /* specifiers */ /* exceptions */ -> void /* return */ {
         /* body */
@@ -112,9 +148,119 @@ int main() {
     decrease_ref_a(); // Prints: 2
     std::cout << a << std::endl; // Prints: 1
     #endif
-#elif __cplusplus > 201103L && __cplusplus <= 201402L // C++14
-    #define EXAMPLE_2
+    #ifdef EXAMPLE_5
+    int a = 5;
 
+    class __lambda_5_17 {
+    public:
+        inline int operator()(int n1, int n2) const {
+            return a * (n1 + n2);
+        }
+
+    private:
+        int &a;
+
+    public:
+        inline __lambda_5_17(const __lambda_5_17 &ref) noexcept : a(ref.a) {
+            std::cout << "Copy CTOR" << std::endl;
+        }
+
+        inline __lambda_5_17(__lambda_5_17 && ref) noexcept : a(ref.a) {
+            std::cout << "Move CTOR" << std::endl;
+        };
+
+        __lambda_5_17(int &_a) : a{_a} {
+            std::cout << "Parametrize CTOR" << std::endl;
+        }
+    };
+
+    __lambda_5_17 lambda = __lambda_5_17(__lambda_5_17{a});
+    auto aaa = std::move(lambda);
+    auto bbb = aaa;
+    std::cout << aaa.operator()(5, 6) << std::endl;
+    a++;
+    std::cout << aaa.operator()(5, 6) << std::endl;
+    std::cout << bbb.operator()(5, 6) << std::endl;
+    #endif
+    #ifdef EXAMPLE_6
+    class __lambda_4_17 {
+    public:
+        inline int operator()(int n1, int n2) const {
+            return n1 + n2;
+        }
+
+        using retType_4_17 = int (*)(int, int);
+
+        inline operator retType_4_17() const noexcept {
+            return __invoke;
+        }
+
+    private:
+        static inline int __invoke(int n1, int n2) {
+            return n1 + n2;
+        }
+
+    public:
+        inline constexpr __lambda_4_17(const __lambda_4_17 &) noexcept = default;
+
+        inline constexpr __lambda_4_17(__lambda_4_17 &&) noexcept = default;
+    };
+
+    __lambda_4_17 lambda = __lambda_4_17(__lambda_4_17{});
+    __lambda_4_17 moved_lambda = __lambda_4_17(std::move(lambda));
+    __lambda_4_17 copied_lambda = __lambda_4_17(moved_lambda);
+    using FuncPtr_9 = int (*)(int, int);
+    FuncPtr_9 direct_func = static_cast<int (*)(int, int)>(copied_lambda.operator __lambda_4_17::retType_4_17());
+
+    // lambda(5, 6); // Usage of moved object may lead to UB
+    moved_lambda(5, 6);
+    copied_lambda(5, 6);
+    direct_func(5, 6);
+    #endif
+    #ifdef EXAMPLE_7
+    int number = 4;
+
+    class __lambda_5_16 {
+    public:
+        inline int operator()(int n) const {
+            return number + n;
+        }
+
+    private:
+        int &number;
+    public:
+        inline constexpr __lambda_5_16(__lambda_5_16 &&) noexcept = default;
+        __lambda_5_16(int &_number) : number{_number} {}
+    };
+
+    __lambda_5_16 lambda = __lambda_5_16(__lambda_5_16{number});
+    // int (*func)(int) = lambda; // Won't compile - no visible conversion
+    #endif
+    #ifdef EXAMPLE_8
+    int number1, number2;
+    number1 = 1; number2 = 2;
+    [number1, &number2]() mutable {
+        number1++;
+        number2++;
+        return number1 * number2;
+    }();
+
+    class A {
+        int n1;
+        int &n2;
+        int *n3;
+        A () : n2(n1), n3(&n1) {}
+
+        void func() const {
+            //n1++;
+            n2++; // OK
+            //n3++;
+            (*n3)++; // OK
+        }
+    };
+
+    #endif
+#elif __cplusplus > 201103L && __cplusplus <= 201402L // C++14
     #ifdef EXAMPLE_1
     auto lambda = [](auto a, auto b) {
         return a + b;
@@ -132,7 +278,33 @@ int main() {
     lambda();
     std::cout << a << std::endl; // Prints: 5
     #endif
+    #ifdef EXAMPLE_3
+    // generic lambda, operator() is a template with one parameter
+    auto vglambda = [](auto printer) {
+        return [=](auto &&... ts) { // generic lambda, ts is a parameter pack
+            printer(std::forward<decltype(ts)>(ts)...);
+        };
+    };
+    auto triple_printer = vglambda([](auto v1, auto v2, auto v3) { std::cout << v1 << v2 << v3; });
+    triple_printer(1, 'a', 3.14); // outputs 1a3.14
+    #endif
+    #ifdef EXAMPLE_4
+    __lambda_4_16 lambda = __lambda_4_16(__lambda_4_16{});
+    lambda.operator()(1, 2.3999999999999999);
+    lambda.operator()(5.0F, 3);
+    #endif
+    #ifdef EXAMPLE_5
+    class A {
+    public:
+        inline constexpr float operator()() {
+            return 0.5f;
+        }
+    };
+    A a;
+    std::cout << a() << std::endl;
+    #endif
 #elif __cplusplus > 201402L && __cplusplus <= 201703L // C++17
+    #ifdef EXAMPLE_1
     struct my_struct {
         my_struct() {}
         my_struct(const my_struct &) { std::cout << "Copy" << std::endl; } // Called during this->func();
@@ -145,9 +317,39 @@ int main() {
     };
     my_struct ms;
     ms.func();
-#else // C++20
-    #define EXAMPLE_3
+    #endif
+    #ifdef EXAMPLE_2
+    class lambda_7_3
+    {
+    public:
+        [[nodiscard]] inline int operator()() const
+        {
+            std::cout << "A" << std::endl;
+            return 5;
+        }
 
+        using retType_7_3 = int (*)();
+        [[nodiscard]] inline constexpr operator retType_7_3 () const noexcept
+        {
+            return invoke;
+        };
+
+    private:
+        static inline int invoke()
+        {
+            std::cout << "B" << std::endl;
+            return 5;
+        }
+    };
+
+    lambda_7_3 a;
+    a();
+    auto c = a;
+    int (*b)() = a;
+    b();
+    c();
+    #endif
+#else // C++20
     #ifdef EXAMPLE_1
     auto sum = [] <typename T, Numeric U> (T num1, U num2) requires ( std::is_arithmetic_v<T> ) {
         return num1 + num2;
