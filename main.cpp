@@ -1,3 +1,15 @@
+/**
+ * All examples are taken from C++ Senioreas blog
+ * https://cppsenioreas.wordpress.com/
+ *
+ * Examples from:
+ * cpp_senioreas::lambda_expressions_and_between_them_from_11_to_20_part_1
+ * https://cppsenioreas.wordpress.com/2020/09/07/lambda-expressions-and-between-them-from-cpp11-to-cpp20-part-1/
+ *
+ * cpp_senioreas::lambda_expressions_and_between_them_the_lambda_mystery_part_2
+ * https://cppsenioreas.wordpress.com/2020/09/13/lambda-expressions-and-between-them-the-lambdas-mystery-part-2/
+ */
+
 #include <iostream>
 #include <thread>
 #include <algorithm>
