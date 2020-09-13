@@ -5,7 +5,7 @@
 #include <type_traits>
 
 // Example #
-#define EXAMPLE_5
+#define EXAMPLE_3
 
 
 
@@ -294,14 +294,6 @@ int main() {
     lambda.operator()(5.0F, 3);
     #endif
     #ifdef EXAMPLE_5
-    class A {
-    public:
-        inline constexpr float operator()() {
-            return 0.5f;
-        }
-    };
-    A a;
-    std::cout << a() << std::endl;
     #endif
 #elif __cplusplus > 201402L && __cplusplus <= 201703L // C++17
     #ifdef EXAMPLE_1
@@ -348,6 +340,14 @@ int main() {
     int (*b)() = a;
     b();
     c();
+    #endif
+    #ifdef EXAMPLE_3
+    auto Fwd = [](int(*fp)(int), auto a) { return fp(a); };
+    auto C   = [](auto a) { return a; };
+    static_assert(Fwd(C, 3) == 3); // OK
+
+    auto NC = [](auto a) { static int s; return a; };
+    // static_assert(Fwd(NC, 3) == 3); // Won't compile
     #endif
 #else // C++20
     #ifdef EXAMPLE_1
