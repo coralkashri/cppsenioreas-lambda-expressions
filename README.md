@@ -1,2 +1,2 @@
 # cppsenioreas-lambda-expressions
-This is an examples repository of [C++ Senioreas](https://cppsenioreas.wordpress.com/) blog lambda expressions article.
+This is an examples repository of [C++ Senioreas](https://cppsenioreas.wordpress.com/) blog [lambda expressions article](https://cppsenioreas.wordpress.com/2020/09/07/lambda-expressions-and-between-them-from-cpp11-to-cpp20-part-1/).
